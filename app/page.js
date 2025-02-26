@@ -1,9 +1,11 @@
+"use client"
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Trophy, Users, Activity, Timer } from "lucide-react";
 import Header from "@/components/Header";
-
+import { useRouter } from "next/navigation";
 export default function Home() {
+   const router=useRouter();
   return (
     <div className="min-h-screen bg-gray-100 text-gray-900">
       {/* Header Component */}
@@ -19,7 +21,7 @@ export default function Home() {
       </header>
       
       {/* Features Section */}
-      <section className="container mx-auto py-12 px-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <section className="container mx-auto py-12 px-4 grid grid-cols-1 md:grid-cols-2 md:mt-10 lg:grid-cols-4 justify-center gap-6 ">
         <Card>
           <CardContent className="flex flex-col items-center p-6">
             <Trophy size={40} className="text-yellow-500" />
@@ -35,7 +37,7 @@ export default function Home() {
           </CardContent>
         </Card>
         <Card>
-          <CardContent className="flex flex-col items-center p-6">
+          <CardContent className="flex flex-col hover:cursor-pointer items-center p-6" onClick={()=>{router.push('/analytics')}}>
             <Activity size={40} className="text-blue-500" />
             <h3 className="mt-4 font-bold text-lg">Performance Analytics</h3>
             <p className="text-center text-gray-600">Analyze your strengths and weaknesses.</p>
@@ -49,30 +51,7 @@ export default function Home() {
           </CardContent>
         </Card>
       </section>
-      
-      {/* Leaderboard Preview */}
-      <section className="container mx-auto py-12 px-4">
-        <h2 className="text-2xl font-bold text-center">Leaderboard</h2>
-        <div className="mt-6 bg-white shadow-md rounded-lg p-4">
-          <ul>
-            <li className="flex justify-between border-b py-2">
-              <span className="font-semibold">1. John Doe</span>
-              <span className="text-gray-600">1200 pts</span>
-            </li>
-            <li className="flex justify-between border-b py-2">
-              <span className="font-semibold">2. Jane Smith</span>
-              <span className="text-gray-600">1100 pts</span>
-            </li>
-            <li className="flex justify-between py-2">
-              <span className="font-semibold">3. Alice Brown</span>
-              <span className="text-gray-600">1050 pts</span>
-            </li>
-          </ul>
-        </div>
-      </section>
-
-      {/* Footer */}
-      <footer className="bg-gray-800 text-white text-center py-6 mt-12">
+        <footer className="bg-gray-800 fixed bottom-1 w-full  text-white text-center py-1 mt-12">
         <p>&copy; 2025 Competitive Programming Arena. All rights reserved.</p>
       </footer>
     </div>

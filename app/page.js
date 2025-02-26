@@ -3,7 +3,11 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Trophy, Users, Activity, Timer, Pencil } from "lucide-react";
 import Header from "@/components/Header";
+<<<<<<< HEAD
+import Link from "next/link"; // Import Link for navigation
+=======
 import { useRouter } from "next/navigation";
+>>>>>>> a0d263c464cffa28fc42667952f55ede4c8766ce
 
 export default function Home() {
   const router = useRouter();
@@ -17,9 +21,13 @@ export default function Home() {
       <header className="bg-blue-600 mt-10 text-white py-16 text-center">
         <h1 className="text-4xl font-bold">Competitive Programming Arena</h1>
         <p className="mt-4 text-lg">Create contests, challenge friends, and track performance.</p>
-        <Button className="mt-6 bg-white text-blue-600 px-6 py-3 rounded-xl font-semibold hover:bg-gray-200">
-          Join a Contest
-        </Button>
+        
+        {/* Join Contest Button with Link to /contests */}
+        <Link href="/contests">
+          <Button className="mt-6 bg-white text-blue-600 px-6 py-3 rounded-xl font-semibold hover:bg-gray-200">
+            Join a Contest
+          </Button>
+        </Link>
       </header>
       
       {/* Features Section */}

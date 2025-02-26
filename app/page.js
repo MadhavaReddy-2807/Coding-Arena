@@ -1,12 +1,16 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Trophy, Users, Activity, Timer } from "lucide-react";
+import Header from "@/components/Header";
 
 export default function Home() {
   return (
     <div className="min-h-screen bg-gray-100 text-gray-900">
+      {/* Header Component */}
+      <Header />
+      
       {/* Hero Section */}
-      <header className="bg-blue-600 text-white py-16 text-center">
+      <header className="bg-blue-600 mt-5 text-white py-16 text-center">
         <h1 className="text-4xl font-bold">Competitive Programming Arena</h1>
         <p className="mt-4 text-lg">Create contests, challenge friends, and track performance.</p>
         <Button className="mt-6 bg-white text-blue-600 px-6 py-3 rounded-xl font-semibold hover:bg-gray-200">

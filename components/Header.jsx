@@ -50,6 +50,7 @@ export default function Header() {
 
         {/* Right Side: Dashboard */}
         <div className="flex items-center space-x-6">
+          <Link href="/" className="text-white hover:text-gray-200 font-medium" >Home</Link>
           <Link href="/dashboard" className="text-white hover:text-gray-200 font-medium">
             Dashboard
           </Link>

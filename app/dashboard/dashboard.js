@@ -12,7 +12,7 @@ export default function Dashboard() {
           <Link href="/" className="text-white hover:text-gray-200 font-medium">
             Home
           </Link>
-          <Link href="/analytics" className="text-white hover:text-gray-200 font-medium">
+          <Link href="/analytics" className="text-white hover:text-gray-200 font-medium hover:cursor-pointer">
             Analytics
           </Link>
         </nav>

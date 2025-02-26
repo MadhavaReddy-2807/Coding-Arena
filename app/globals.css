@@ -113,6 +113,22 @@
 
 @layer base {
   * {
+    border-color: hsl(var(--border)); /* Uses the CSS variable */
+    outline-color: hsl(var(--ring) / 0.5);
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+
+
+
+
+
+
+@layer base {
+  * {
     @apply border-border outline-ring/50;
   }
   body {

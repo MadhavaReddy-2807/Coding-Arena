@@ -12,24 +12,41 @@ export default function Dashboard() {
 
   const fetchData = async () => {
     if (!user) return;
-
+  
     try {
       const res = await fetch(
         `${process.env.NEXT_PUBLIC_BACKEND_URL}users?email=${user.primaryEmailAddress?.emailAddress}`
       );
-
+  
       if (!res.ok) {
-        throw new Error(`HTTP error! Status: ${res.status}`);
+        if (res.status === 404) {
+          // User doesn't exist, create new user
+          await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}users`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              email: user.primaryEmailAddress?.emailAddress,
+              name: user.fullName,
+              contestId: "",
+              problems: [], 
+            }),
+          });
+        } else {
+          throw new Error(`HTTP error! Status: ${res.status}`);
+        }
+      } else {
+        const userData = await res.json();
+        setData(userData);
       }
-
-      const userData = await res.json();
-      setData(userData);
-      setLoading(false);
     } catch (error) {
       console.error("Error fetching user data:", error);
+    } finally {
       setLoading(false);
     }
   };
+  
 
   useEffect(() => {
     if (user) {

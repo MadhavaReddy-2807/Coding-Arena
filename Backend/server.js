@@ -39,15 +39,19 @@ app.get('/users', async (req, res) => {
 app.post('/privatecontest', async (req, res) => {
     try {
         const contestCollection = db.collection('privatecontest'); // Reference to the collection
-        const { name, email, contestId, problems } = req.body; // Extract contest details
+        const { name, email, contestId, problems,startTime,endTime,participants,contestDate } = req.body; // Extract contest details
 
 
         const newContest = {
             name,
             email,
             contestId,
+            contestDate,
             problems,
             createdAt: new Date(),
+            endTime,
+            startTime,
+            participants
         };
 
         await contestCollection.insertOne(newContest);
@@ -55,7 +59,6 @@ app.post('/privatecontest', async (req, res) => {
         res.status(201).json({ message: "Contest created successfully", contestId });
     } catch (error) {
         console.error("Error creating private contest:", error);
-        res.status(500).json({ error: "Internal Server Error" });
     }
 });
 

@@ -13,6 +13,9 @@ export default function CustomContests() {
   const [loading, setLoading] = useState(true);
   const [tags, setTags] = useState([]);
   const [selectedTag, setSelectedTag] = useState("");
+  const [contestDate, setContestDate] = useState("");
+  const [startTime, setStartTime] = useState("");
+  const [endTime, setEndTime] = useState("");
   const router = useRouter();
   const { user } = useUser();
 
@@ -85,6 +88,10 @@ export default function CustomContests() {
       email: user?.primaryEmailAddress?.emailAddress,
       contestId,
       problems: selectedProblems,
+      startTime,
+      endTime,
+      contestDate,
+      participants: [],
     };
 
     try {
@@ -189,7 +196,7 @@ export default function CustomContests() {
                     : "bg-gray-400 text-gray-200 cursor-not-allowed"
                 }`}
               >
-                Start Contest
+                Create Contest
               </button>
             </div>
           </>

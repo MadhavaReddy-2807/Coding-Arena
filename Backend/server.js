@@ -36,6 +36,28 @@ app.get('/users', async (req, res) => {
         res.status(500).json({ error: "Internal Server Error" });
     }
 });
+app.post('/privatecontest', async (req, res) => {
+    try {
+        const contestCollection = db.collection('privatecontest'); // Reference to the collection
+        const { name, email, contestId, problems } = req.body; // Extract contest details
+
+
+        const newContest = {
+            name,
+            email,
+            contestId,
+            problems,
+            createdAt: new Date(),
+        };
+
+        await contestCollection.insertOne(newContest);
+
+        res.status(201).json({ message: "Contest created successfully", contestId });
+    } catch (error) {
+        console.error("Error creating private contest:", error);
+        res.status(500).json({ error: "Internal Server Error" });
+    }
+});
 
 app.post('/users', async (req, res) => {
     console.log('called')

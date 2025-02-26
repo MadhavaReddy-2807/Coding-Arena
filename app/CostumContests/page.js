@@ -7,6 +7,7 @@ import { v4 as uuidv4 } from "uuid";
 import { toast } from "sonner";
 
 export default function CustomContests() {
+  const [contestName, setContestName] = useState("");
   const [problems, setProblems] = useState([]);
   const [filteredProblems, setFilteredProblems] = useState([]);
   const [selectedProblems, setSelectedProblems] = useState([]);
@@ -22,9 +23,7 @@ export default function CustomContests() {
   useEffect(() => {
     const fetchProblems = async () => {
       try {
-        const response = await fetch(
-          "https://codeforces.com/api/problemset.problems"
-        );
+        const response = await fetch("https://codeforces.com/api/problemset.problems");
         const data = await response.json();
 
         if (data.status === "OK") {
@@ -45,6 +44,7 @@ export default function CustomContests() {
         }
       } catch (error) {
         console.error("Error fetching Codeforces problems:", error);
+        toast.error("Failed to fetch problems from Codeforces.");
       } finally {
         setLoading(false);
       }
@@ -70,21 +70,30 @@ export default function CustomContests() {
   const handleTagChange = (event) => {
     const tag = event.target.value;
     setSelectedTag(tag);
-    setFilteredProblems(
-      tag ? problems.filter((problem) => problem.tags.includes(tag)) : problems
-    );
+    setFilteredProblems(tag ? problems.filter((problem) => problem.tags.includes(tag)) : problems);
   };
 
   // Start contest with selected problems
   const startContest = async () => {
+    if (!contestName.trim()) {
+      toast.error("Please enter a contest name.");
+      return;
+    }
+
     if (selectedProblems.length === 0) {
       toast.error("Please select at least one problem to start the contest!");
       return;
     }
 
+    if (!contestDate || !startTime || !endTime) {
+      toast.error("Please provide a valid contest date and time.");
+      return;
+    }
+
     const contestId = uuidv4();
     const data = {
-      name: user?.fullName,
+      name: contestName,
+      organizer: user?.fullName,
       email: user?.primaryEmailAddress?.emailAddress,
       contestId,
       problems: selectedProblems,
@@ -119,9 +128,7 @@ export default function CustomContests() {
     <>
       <Header />
       <div className="max-w-4xl mt-10 mx-auto px-4 py-8">
-        <h1 className="text-3xl font-bold text-center mb-8">
-          Custom Contests - Codeforces Problems
-        </h1>
+        <h1 className="text-3xl font-bold text-center mb-8">Custom Contests - Codeforces Problems</h1>
 
         {/* Tag Filter */}
         <div className="mb-6">
@@ -169,13 +176,9 @@ export default function CustomContests() {
                       >
                         {problem.name}
                       </a>
-                      <p className="text-sm text-gray-500 mt-1">
-                        Contest {problem.contestId} - {problem.index}
-                      </p>
+                      <p className="text-sm text-gray-500 mt-1">Contest {problem.contestId} - {problem.index}</p>
                       {problem.tags.length > 0 && (
-                        <p className="text-xs text-gray-400 mt-1">
-                          Tags: {problem.tags.join(", ")}
-                        </p>
+                        <p className="text-xs text-gray-400 mt-1">Tags: {problem.tags.join(", ")}</p>
                       )}
                     </div>
                   </div>
@@ -184,23 +187,30 @@ export default function CustomContests() {
             ) : (
               <p className="text-center text-gray-600">No problems found.</p>
             )}
-
-            {/* Start Contest Button */}
-            <div className="flex justify-center mt-8">
-              <button
-                onClick={startContest}
-                disabled={selectedProblems.length === 0}
-                className={`px-6 py-3 rounded-xl font-semibold transition-all focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                  selectedProblems.length > 0
-                    ? "bg-blue-600 text-white hover:bg-blue-700"
-                    : "bg-gray-400 text-gray-200 cursor-not-allowed"
-                }`}
-              >
-                Create Contest
-              </button>
-            </div>
           </>
         )}
+
+        {/* Contest Name Input */}
+        <div className="mb-4">
+          <label className="block text-gray-700 font-medium mb-2">Contest Name:</label>
+          <input
+            type="text"
+            value={contestName}
+            onChange={(e) => setContestName(e.target.value)}
+            className="w-full p-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            placeholder="Enter contest name"
+          />
+        </div>
+
+        {/* Date & Time Inputs */}
+        <div className="grid grid-cols-3 gap-4 mb-6">
+          <input type="date" value={contestDate} onChange={(e) => setContestDate(e.target.value)} className="p-3 border border-gray-300 rounded-md shadow-sm" />
+          <input type="time" value={startTime} onChange={(e) => setStartTime(e.target.value)} className="p-3 border border-gray-300 rounded-md shadow-sm" />
+          <input type="time" value={endTime} onChange={(e) => setEndTime(e.target.value)} className="p-3 border border-gray-300 rounded-md shadow-sm" />
+        </div>
+
+        {/* Start Contest Button */}
+        <button onClick={startContest} disabled={selectedProblems.length === 0} className="px-6 py-3 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 transition-all">Create Contest</button>
       </div>
     </>
   );

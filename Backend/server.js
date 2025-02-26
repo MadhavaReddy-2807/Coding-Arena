@@ -39,12 +39,13 @@ app.get('/users', async (req, res) => {
 app.post('/privatecontest', async (req, res) => {
     try {
         const contestCollection = db.collection('privatecontest'); // Reference to the collection
-        const { name, email, contestId, problems,startTime,endTime,participants,contestDate } = req.body; // Extract contest details
+        const { name, email,organizer, contestId, problems,startTime,endTime,participants,contestDate } = req.body; // Extract contest details
 
 
         const newContest = {
             name,
             email,
+            organizer,
             contestId,
             contestDate,
             problems,

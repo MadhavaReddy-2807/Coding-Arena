@@ -3,11 +3,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Trophy, Users, Activity, Timer, Pencil } from "lucide-react";
 import Header from "@/components/Header";
-<<<<<<< HEAD
 import Link from "next/link"; // Import Link for navigation
-=======
 import { useRouter } from "next/navigation";
->>>>>>> a0d263c464cffa28fc42667952f55ede4c8766ce
 
 export default function Home() {
   const router = useRouter();

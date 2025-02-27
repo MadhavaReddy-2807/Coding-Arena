@@ -75,9 +75,7 @@ export default function UpcomingContests() {
         ))}
       </div>
 
-      <div className="text-center mt-14 text-xl text-gray-700 font-semibold italic">
-        "Code, Compete, and Conquer! 🚀💡"
-      </div>
+     
     </div>
   );
 }

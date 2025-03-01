@@ -12,6 +12,7 @@ const AdminPanel = () => {
     startTime: "",
     endTime: "",
     problems: [],
+    participants: [], // Added participants array
     id: uuidv4(), // Auto-generate unique contest ID
   });
 
@@ -77,6 +78,7 @@ const AdminPanel = () => {
           startTime: "",
           endTime: "",
           problems: [],
+          participants: [], // Reset participants array
           id: uuidv4(), // Generate new contest ID for next entry
         });
         setSelectedProblems([]);

@@ -5,8 +5,59 @@ import { Trophy, Users, Activity, Timer, Pencil } from "lucide-react";
 import Header from "@/components/Header";
 import Link from "next/link"; // Import Link for navigation
 import { useRouter } from "next/navigation";
-
+import { useUser } from "@clerk/nextjs";
+import { useEffect } from "react";
+import { useState } from "react";
 export default function Home() {
+  const { user } = useUser();
+    const [data, setData] = useState(null);
+    const [loading, setLoading] = useState(true);
+
+
+  const fetchData = async () => {
+    if (!user) return;
+  
+    try {
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}users?email=${user.primaryEmailAddress?.emailAddress}`
+      );
+  
+      if (!res.ok) {
+        if (res.status === 404) {
+          // User doesn't exist, create new user
+          await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}users`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              email: user.primaryEmailAddress?.emailAddress,
+              name: user.fullName,
+              avatar:user.imageUrl,
+              contestId: "",
+              problems: [], 
+            }),
+          });
+        } else {
+          throw new Error(`HTTP error! Status: ${res.status}`);
+        }
+      } else {
+        const userData = await res.json();
+        setData(userData);
+      }
+    } catch (error) {
+      console.error("Error fetching user data:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+
+  useEffect(() => {
+    if (user) {
+      fetchData();
+    }
+  }, [user]);
   const router = useRouter();
   
   return (

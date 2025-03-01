@@ -30,6 +30,7 @@ export default function Dashboard() {
               email: user.primaryEmailAddress?.emailAddress,
               name: user.fullName,
               contestId: "",
+              avatar:user?.avatar,
               problems: [], 
             }),
           });

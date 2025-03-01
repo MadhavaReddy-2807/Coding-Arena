@@ -15,6 +15,7 @@ const Page = () => {
   const [isRegistering, setIsRegistering] = useState(false);
   const [isRegistered, setIsRegistered] = useState(false);
   const [hasStarted, setHasStarted] = useState(false);
+  const [hasEnded, setHasEnded] = useState(false); // Track if contest has ended
 
   useEffect(() => {
     const fetchContest = async () => {
@@ -32,10 +33,12 @@ const Page = () => {
           setIsRegistered(isUserRegistered);
         }
 
-        const contestStartTime = new Date(`${data.startDate} ${data.startTime}`);
-        if (new Date() >= contestStartTime) {
-          setHasStarted(true);
-        }
+        const contestStartTime = new Date(`${data.startDate}T${data.startTime}:00`);
+        const contestEndTime = new Date(`${data.startDate}T${data.endTime}:00`);
+        const currentTime = new Date();
+
+        setHasStarted(currentTime >= contestStartTime);
+        setHasEnded(currentTime >= contestEndTime); // Set hasEnded
       } catch (error) {
         setError(error.message);
       } finally {
@@ -69,10 +72,7 @@ const Page = () => {
 
       toast.success("Successfully registered for the contest!");
 
-      setContest((prev) => ({
-        ...prev,
-        participants: [...(prev.participants || []), participant],
-      }));
+      setContest((prev) => (prev ? { ...prev, participants: [...(prev.participants || []), participant] } : prev));
       setIsRegistered(true);
     } catch (error) {
       toast.error(error.message);
@@ -106,9 +106,7 @@ const Page = () => {
           </div>
 
           {/* Contest Description */}
-          <p className="text-md text-gray-700 italic mt-6 text-center px-4">
-            "{contest.aim}"
-          </p>
+          <p className="text-md text-gray-700 italic mt-6 text-center px-4">"{contest.aim}"</p>
 
           {/* Contest Details Grid */}
           <div className="mt-8 grid grid-cols-2 gap-6">
@@ -119,7 +117,9 @@ const Page = () => {
 
             <div className="bg-white shadow-md p-5 rounded-xl text-center">
               <p className="text-xl font-semibold text-gray-900">⏰ Time</p>
-              <p className="text-gray-600">{contest.startTime} - {contest.endTime}</p>
+              <p className="text-gray-600">
+                {contest.startTime} - {contest.endTime}
+              </p>
             </div>
           </div>
 
@@ -138,7 +138,7 @@ const Page = () => {
                   onClick={handleGoToContest}
                   className="px-6 py-3 font-bold rounded-xl bg-green-600 text-white hover:bg-green-700 transition"
                 >
-                  🎯 Go to Contest
+                  {hasEnded ? "📜 View Contest (Ended)" : "🎯 Go to Contest"}
                 </button>
               ) : (
                 <p className="text-red-500 font-semibold">You are not registered for this contest.</p>

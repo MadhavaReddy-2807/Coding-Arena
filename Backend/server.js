@@ -19,7 +19,16 @@ const db = client.db(dbname);
 app.get('/', (req, res) => {
     res.send("hellowword")
 })
-
+app.post('/getusers',async(req,res)=>{
+    const usersCollection = db.collection('usersdata');
+    const {userIds}=req.body;
+    if(userIds.length!=0)
+    {
+      const users = await usersCollection.find({ email: { $in: userIds } }).toArray();
+      res.json(users);
+    }
+  
+  })
 app.get('/contests/:id', async (req, res) => {
     try {
         const contestId = req.params.id;
@@ -47,6 +56,7 @@ app.post('/privatecontests/:id/register', async (req, res) => {
         }
 
         const contestCollection = db.collection('privatecontest');
+        const usersCollection = db.collection('usersdata');
 
         // Find the contest
         const contest = await contestCollection.findOne({ contestId });
@@ -56,27 +66,44 @@ app.post('/privatecontests/:id/register', async (req, res) => {
         }
 
         // Check if the participant is already registered
-        const isAlreadyRegistered = contest.participants?.some(p => p.email === email);
-        if (isAlreadyRegistered) {
+        if (contest.participants?.some(p => p.email === email)) {
             return res.status(400).json({ error: "You are already registered for this contest." });
         }
+
+        // Fetch the user's Codeforces handle
+        const user = await usersCollection.findOne({ email });
+        const cfHandle = user?.cfHandle || null; // Use null if cfHandle is not found
 
         // Add participant to the contest
         const updatedContest = await contestCollection.updateOne(
             { contestId },
-            { $push: { participants: { name, email } } }
+            { $push: { participants: { name, email, cfHandle } } }
         );
 
         if (updatedContest.modifiedCount === 0) {
             return res.status(500).json({ error: "Failed to register for the contest." });
         }
 
-        res.status(200).json({ message: "Successfully registered!", participant: { name, email } });
+        // Update the user's contests array
+        const contestData = {
+            name: contest.name,
+            url: `${process.env.FRONTEND_URL}/CostumContests/${contestId}`
+        };
+
+        await usersCollection.updateOne(
+            { email: email },
+            { $push: { contests: contestData } }
+        );
+
+        res.status(200).json({ message: "Successfully registered!", participant: { name, email, cfHandle } });
+
     } catch (error) {
         console.error("Error registering participant:", error);
         res.status(500).json({ error: "Internal Server Error" });
     }
 });
+
+
 
 app.get('/upcomingcontests', async (req, res) => {
     try {
@@ -161,6 +188,27 @@ app.post('/privatecontest', async (req, res) => {
         console.error("Error creating private contest:", error);
     }
 });
+app.post('/users/update', async (req, res) => {
+    console.log("hello")
+
+    try {
+        const { email, cfHandle } = req.body;
+        if (!email || !cfHandle) return res.status(400).json({ error: "Email and Codeforces handle are required" });
+
+        const usersCollection = db.collection('usersdata');
+        const result = await usersCollection.updateOne(
+            { email },
+            { $set: { cfHandle } }
+        );
+
+        result.matchedCount > 0
+            ? res.status(200).json({ message: "Codeforces handle updated successfully!" })
+            : res.status(404).json({ error: "User not found" });
+    } catch (error) {
+        console.error("Error updating Codeforces handle:", error);
+        res.status(500).json({ error: "Internal Server Error" });
+    }
+});
 
 app.post("/contests/:contestid/register", async (req, res) => {
     const { contestid } = req.params;
@@ -168,20 +216,39 @@ app.post("/contests/:contestid/register", async (req, res) => {
 
     try {
         const contestCollection = db.collection('upcomingcontests');
-        const contest = await contestCollection.findOne({ id: contestid });
+        const usersCollection = db.collection('usersdata');
 
+        // Find the contest
+        const contest = await contestCollection.findOne({ id: contestid });
         if (!contest) return res.status(404).json({ message: "Contest not found" });
 
+        // Check if the user is already registered
         if (contest.participants && contest.participants.some((p) => p.email === email)) {
             return res.status(400).json({ message: "User already registered" });
         }
 
+        // Fetch the user's Codeforces handle
+        const user = await usersCollection.findOne({ email }, { projection: { cfHandle: 1 } });
+        const cfHandle = user?.cfHandle || null;
+
+        // Register the user in the contest
         await contestCollection.updateOne(
             { id: contestid },
-            { $push: { participants: { name, email } } }
+            { $push: { participants: { name, email, cfHandle } } }
         );
 
-        console.log(contest.authoremail)
+        // Update the user's contests array
+        const contestData = {
+            name: contest.name,
+            url: `${process.env.FRONTEND_URL}/contests/${contestid}`
+        };
+
+        await usersCollection.updateOne(
+            { email: email },
+            { $push: { contests: contestData } }
+        );
+
+        // Send confirmation email
         const organizerEmail = contest.authoremail;
         if (!organizerEmail) return res.status(500).json({ message: "Organizer email not found!" });
 
@@ -197,20 +264,23 @@ app.post("/contests/:contestid/register", async (req, res) => {
             from: organizerEmail,
             to: email,
             subject: `Registration Confirmation - ${contest.name}`,
-            text: `Hi ${name},\n\nYou've successfully registered for ${contest.name}!\n\n📅 Start Time: ${contest.startTime}\n🕒 End Time: ${contest.endTime}\n\nBest of luck!\n\nOrganizer: ${contest.organizer}`,
+            text: `Hi ${name},\n\nYou've successfully registered for ${contest.name}!\n\n📅 Start Time: ${contest.startTime}\n🕒 End Time: ${contest.endTime}\n\n🔗 View Contest: ${process.env.FRONTEND_URL}/contests/${contestid}\n\nBest of luck!\n\nOrganizer: ${contest.organizer}`,
         };
 
         await transporter.sendMail(mailOptions);
 
-        res.status(200).json({ message: "Registered successfully and email sent!" });
+        res.status(200).json({ message: "Registered successfully, user updated, and email sent!" });
     } catch (error) {
         console.error("Error registering user:", error);
         res.status(500).json({ message: "Server error" });
     }
 });
 
+
+
 app.post('/upcomingcontests', async (req, res) => {
     try {
+        console.log(req.body)
         const contestCollection = db.collection('upcomingcontests');
         const usersCollection = db.collection('usersdata');
 
@@ -224,6 +294,7 @@ app.post('/upcomingcontests', async (req, res) => {
             return res.status(201).json({ message: "Contest added but no users found to notify" });
         }
 
+        console.log(contest.authoremail)
         const transporter = nodemailer.createTransport({
             service: "Gmail",
             auth: {

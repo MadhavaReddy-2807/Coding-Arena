@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { v4 as uuidv4 } from "uuid";
 
 const AdminPanel = () => {
@@ -12,25 +12,26 @@ const AdminPanel = () => {
     startTime: "",
     endTime: "",
     problems: [],
-    participants: [], // Added participants array
-    id: uuidv4(), // Auto-generate unique contest ID
+    participants: [],
+    id: uuidv4(),
   });
 
-  const [problems, setProblems] = useState([]); // Store fetched problems
-  const [selectedProblems, setSelectedProblems] = useState([]); // Store selected problems
-  const [tags, setTags] = useState([]); // Store unique tags
+  const [problems, setProblems] = useState([]);
+  const [selectedProblems, setSelectedProblems] = useState(new Set());
   const [selectedTag, setSelectedTag] = useState("");
 
-  // Fetch problems from Codeforces API
   useEffect(() => {
     const fetchProblems = async () => {
       try {
         const response = await fetch("https://codeforces.com/api/problemset.problems");
         const data = await response.json();
         if (data.status === "OK") {
-          setProblems(data.result.problems);
-          const uniqueTags = new Set(data.result.problems.flatMap(problem => problem.tags));
-          setTags(Array.from(uniqueTags));
+          setProblems(
+            data.result.problems.slice(0, 50).map(problem => ({
+              ...problem,
+              url: `https://codeforces.com/problemset/problem/${problem.contestId}/${problem.index}`
+            }))
+          );
         }
       } catch (error) {
         console.error("Error fetching problems:", error);
@@ -40,27 +41,37 @@ const AdminPanel = () => {
   }, []);
 
   const handleChange = (e) => {
-    setContest({ ...contest, [e.target.name]: e.target.value });
+    setContest((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
-  // Handle problem selection
-  const handleProblemSelection = (problem) => {
-    if (selectedProblems.some((p) => p.contestId === problem.contestId && p.index === problem.index)) {
-      setSelectedProblems(selectedProblems.filter((p) => !(p.contestId === problem.contestId && p.index === problem.index)));
-    } else {
-      setSelectedProblems([...selectedProblems, problem]);
-    }
-  };
+  const toggleProblemSelection = useCallback((problem) => {
+    setSelectedProblems((prev) => {
+      const newSelection = new Set(prev);
+      const problemKey = `${problem.contestId}-${problem.index}`;
+      if (newSelection.has(problemKey)) {
+        newSelection.delete(problemKey);
+      } else {
+        newSelection.add(problemKey);
+      }
+      return newSelection;
+    });
+  }, []);
+
+  const filteredProblems = useMemo(() => {
+    return problems.filter(problem => !selectedTag || problem.tags.includes(selectedTag));
+  }, [problems, selectedTag]);
+
+  const tags = useMemo(() => [...new Set(problems.flatMap(problem => problem.tags))], [problems]);
+
+  const finalContest = useMemo(() => ({
+    ...contest,
+    problems: problems.filter(problem => selectedProblems.has(`${problem.contestId}-${problem.index}`)),
+    link: `/contest/${contest.id}`,
+  }), [contest, problems, selectedProblems]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const finalContest = {
-        ...contest,
-        problems: selectedProblems,
-        link: `/contest/${contest.id}`, // Auto-generate contest link
-      };
-
       const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}upcomingcontests`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -69,19 +80,8 @@ const AdminPanel = () => {
 
       if (res.ok) {
         alert("Contest added successfully!");
-        setContest({
-          name: "",
-          author: "",
-          authoremail: "",
-          aim: "",
-          startDate: "",
-          startTime: "",
-          endTime: "",
-          problems: [],
-          participants: [], // Reset participants array
-          id: uuidv4(), // Generate new contest ID for next entry
-        });
-        setSelectedProblems([]);
+        setContest({ name: "", author: "", authoremail: "", aim: "", startDate: "", startTime: "", endTime: "", problems: [], participants: [], id: uuidv4() });
+        setSelectedProblems(new Set());
       } else {
         console.error("Failed to send contest data");
       }
@@ -103,7 +103,6 @@ const AdminPanel = () => {
         <input type="time" name="startTime" value={contest.startTime} onChange={handleChange} required className="w-full p-2 rounded bg-gray-700 text-white"/>
         <input type="time" name="endTime" value={contest.endTime} onChange={handleChange} required className="w-full p-2 rounded bg-gray-700 text-white"/>
 
-        {/* Filter by Tags */}
         <select onChange={(e) => setSelectedTag(e.target.value)} className="w-full p-2 rounded bg-gray-700 text-white">
           <option value="">All Tags</option>
           {tags.map((tag, index) => (
@@ -111,24 +110,28 @@ const AdminPanel = () => {
           ))}
         </select>
 
-        {/* Problems Section */}
         <div className="bg-gray-700 p-4 rounded-lg">
           <h2 className="text-xl font-bold mb-2">📝 Select Problems</h2>
           <div className="max-h-40 overflow-y-auto">
-            {problems.filter(problem => !selectedTag || problem.tags.includes(selectedTag)).map((problem, index) => (
-              <div key={index} className="flex items-center mb-2">
-                <input
-                  type="checkbox"
-                  id={`problem-${index}`}
-                  onChange={() => handleProblemSelection(problem)}
-                  checked={selectedProblems.some((p) => p.contestId === problem.contestId && p.index === problem.index)}
-                  className="mr-2"
-                />
-                <label htmlFor={`problem-${index}`} className="text-sm">
-                  {problem.contestId}{problem.index} - {problem.name}
-                </label>
-              </div>
-            ))}
+            {filteredProblems.map((problem, index) => {
+              const problemKey = `${problem.contestId}-${problem.index}`;
+              return (
+                <div key={index} className="flex items-center mb-2">
+                  <input
+                    type="checkbox"
+                    id={`problem-${index}`}
+                    onChange={() => toggleProblemSelection(problem)}
+                    checked={selectedProblems.has(problemKey)}
+                    className="mr-2"
+                  />
+                  <label htmlFor={`problem-${index}`} className="text-sm">
+                    <a href={problem.url} target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:underline">
+                      {problem.contestId}{problem.index} - {problem.name}
+                    </a>
+                  </label>
+                </div>
+              );
+            })}
           </div>
         </div>
 

@@ -9,15 +9,18 @@ export default function Dashboard() {
   const router = useRouter();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [cfHandle, setCfHandle] = useState("");
+  const [updating, setUpdating] = useState(false);
+  const [message, setMessage] = useState("");
 
   const fetchData = async () => {
     if (!user) return;
-  
+
     try {
       const res = await fetch(
         `${process.env.NEXT_PUBLIC_BACKEND_URL}users?email=${user.primaryEmailAddress?.emailAddress}`
       );
-  
+
       if (!res.ok) {
         if (res.status === 404) {
           // User doesn't exist, create new user
@@ -30,8 +33,9 @@ export default function Dashboard() {
               email: user.primaryEmailAddress?.emailAddress,
               name: user.fullName,
               contestId: "",
-              avatar:user?.avatar,
-              problems: [], 
+              avatar: user?.avatar,
+              cfHandle: "",
+              problems: [],
             }),
           });
         } else {
@@ -40,6 +44,7 @@ export default function Dashboard() {
       } else {
         const userData = await res.json();
         setData(userData);
+        setCfHandle(userData.cfHandle || ""); // Pre-fill CF handle if it exists
       }
     } catch (error) {
       console.error("Error fetching user data:", error);
@@ -47,7 +52,6 @@ export default function Dashboard() {
       setLoading(false);
     }
   };
-  
 
   useEffect(() => {
     if (user) {
@@ -55,12 +59,42 @@ export default function Dashboard() {
     }
   }, [user]);
 
+  const updateCFHandle = async () => {
+    if (!cfHandle.trim()) return;
+
+    setUpdating(true);
+    setMessage("");
+
+    try {
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}users/update`,
+        {
+          method: "POST", // ✅ Match backend method
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            email: user.primaryEmailAddress?.emailAddress,
+            cfHandle,
+          }),
+        }
+      );
+      
+
+      if (!res.ok) throw new Error("Failed to update CF handle");
+
+      setMessage("Codeforces handle updated successfully!");
+    } catch (error) {
+      console.error("Error updating CF handle:", error);
+      setMessage("Failed to update handle. Try again.");
+    } finally {
+      setUpdating(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-100">
       {/* Navbar */}
       <header className="bg-blue-600 shadow-md py-4 px-6 flex justify-between items-center fixed w-full top-0 z-50">
         <h1 className="text-2xl font-bold text-white">Dashboard</h1>
-
         <nav className="flex space-x-6">
           <Link href="/" className="text-white hover:text-gray-200 font-medium">
             Home
@@ -78,6 +112,28 @@ export default function Dashboard() {
       <main className="pt-20 p-6">
         <h2 className="text-xl font-semibold">Welcome to the Dashboard!</h2>
         <p className="text-gray-700 mt-2">Manage your activities and track your progress here.</p>
+
+        {/* Profile Update Section */}
+        <div className="mt-6 bg-white p-6 rounded-lg shadow-md">
+          <h3 className="text-lg font-semibold">Update Profile</h3>
+          <div className="flex items-center gap-4 mt-4">
+            <input
+              type="text"
+              value={cfHandle}
+              onChange={(e) => setCfHandle(e.target.value)}
+              placeholder="Enter your Codeforces handle"
+              className="border border-gray-300 px-4 py-2 rounded-md w-full"
+            />
+            <button
+              onClick={updateCFHandle}
+              className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition"
+              disabled={updating}
+            >
+              {updating ? "Updating..." : "Save"}
+            </button>
+          </div>
+          {message && <p className="text-sm text-green-600 mt-2">{message}</p>}
+        </div>
 
         {/* Participated Contests Section */}
         <div className="mt-6">

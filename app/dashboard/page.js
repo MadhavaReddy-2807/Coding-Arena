@@ -30,7 +30,7 @@ export default function Dashboard() {
               "Content-Type": "application/json",
             },
             body: JSON.stringify({
-              email: user.primaryEmailAddress?.emailAddress,
+              email: user?.primaryEmailAddress?.emailAddress,
               name: user.fullName,
               contestId: "",
               avatar: user?.avatar,

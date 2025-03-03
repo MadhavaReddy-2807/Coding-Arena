@@ -7,6 +7,7 @@ import { MessageCircle, X } from "lucide-react";
 import Commentbox from "@/app/(components)/Commentbox";
 import "@liveblocks/react-ui/styles.css";
 import { Room } from "@/app/Room";
+
 const ContestPage = () => {
   const { contestid } = useParams();
   const [contest, setContest] = useState(null);
@@ -22,15 +23,17 @@ const ContestPage = () => {
       try {
         const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}contests/${contestid}`);
         if (!res.ok) throw new Error("Failed to fetch contest details");
-
+  
         const data = await res.json();
         console.log("Fetched Contest Data:", data);
         setContest(data);
-
+  
         // Calculate if the contest has ended
         const contestEndTime = new Date(`${data.startDate}T${data.endTime}:00Z`).getTime();
         const currentTime = new Date().getTime();
-        setHasEnded(currentTime >= contestEndTime);
+        console.log(currentTime);
+        console.log(contestEndTime);
+        setHasEnded(currentTime+1000000000 >= contestEndTime); // Update hasEnded state
       } catch (error) {
         console.error("Error fetching contest:", error);
         setError(error.message);
@@ -38,61 +41,63 @@ const ContestPage = () => {
         setLoading(false);
       }
     };
-
+  
     if (contestid) fetchContestDetails();
   }, [contestid]);
 
   useEffect(() => {
     if (!contest || !contest.participants || hasEnded) return; // Stop if contest has ended
-
+  
     const fetchLeaderboard = async () => {
       try {
         const leaderboardData = await Promise.all(
           contest.participants.map(async (participant) => {
             if (!participant.cfHandle) return { name: participant.name, handle: "N/A", solved: 0, penalty: 0 };
-
+  
             const res = await fetch(`https://codeforces.com/api/user.status?handle=${participant.cfHandle}`);
             const data = await res.json();
             if (!data.result) return { name: participant.name, handle: participant.cfHandle, solved: 0, penalty: 0 };
             return processICPCScoring(data.result, participant.name, participant.cfHandle);
           })
         );
-
+  
         setLeaderboard(leaderboardData.sort((a, b) => b.solved - a.solved || a.penalty - b.penalty));
       } catch (error) {
         console.error("Error fetching leaderboard:", error);
       }
     };
-
+  
     // Fetch leaderboard 5 seconds after contest data is available
     const leaderboardTimeout = setTimeout(fetchLeaderboard, 5000);
-
+  
     // Auto-refresh leaderboard every 1 minute (only if contest hasn't ended)
     const interval = setInterval(fetchLeaderboard, 60000);
-
+  
     return () => {
       clearTimeout(leaderboardTimeout);
       clearInterval(interval);
     };
   }, [contest, hasEnded]); // Run when `contest` or `hasEnded` is updated
-
+  useEffect(() => {
+    console.log("Contest has ended:", hasEnded);
+  }, [hasEnded]);
   const processICPCScoring = (submissions, name, handle) => {
     let problemStatus = {};
     let solvedCount = 0;
     let penalty = 0;
-
+  
     if (!contest || !contest.problems) {
       console.error("Contest or contest problems are undefined.");
       return { name, handle, solved: 0, penalty: 0 };
     }
-
+  
     const startDate = new Date(`${contest.startDate}T${contest.startTime}:00Z`).getTime() / 1000;
     const endDate = new Date(`${contest.startDate}T${contest.endTime}:00Z`).getTime() / 1000;
-
+  
     submissions.forEach((submission) => {
       const { problem, verdict, creationTimeSeconds } = submission;
       const problemKey = `${problem.contestId}/${problem.index}`;
-
+  
       // Check if the problem is in the contest
       const isProblemInContest = contest.problems.some((p) => {
         const urlParts = p.url.split("/");
@@ -100,7 +105,7 @@ const ContestPage = () => {
         const indexFromUrl = urlParts[urlParts.length - 1];
         return contestIdFromUrl === problem.contestId && indexFromUrl === problem.index;
       });
-
+  
       if (
         isProblemInContest &&
         creationTimeSeconds >= startDate &&
@@ -109,9 +114,9 @@ const ContestPage = () => {
         if (!problemStatus[problemKey]) {
           problemStatus[problemKey] = { attempts: 0, solved: false, firstSolveTime: 0 };
         }
-
+  
         if (problemStatus[problemKey].solved) return;
-
+  
         if (verdict === "OK") {
           problemStatus[problemKey].solved = true;
           solvedCount++;
@@ -119,12 +124,47 @@ const ContestPage = () => {
           penalty += Math.floor((creationTimeSeconds - startDate) / 60) + problemStatus[problemKey].attempts * 20;
         } else {
           problemStatus[problemKey].attempts++;
+          penalty += 20;
         }
       }
     });
-
+  
     return { name, handle, solved: solvedCount, penalty };
   };
+
+  // Function to update user contest history
+  const updateUserContestHistory = async (userId, contestName, problemsSolved, contestDate) => {
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/users/${userId}/update-contest-history`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          contestName,
+          problemsSolved,
+          contestDate, // Include contest date in the update
+        }),
+      });
+
+      if (!res.ok) throw new Error("Failed to update user contest history");
+    } catch (error) {
+      console.error("Error updating user contest history:", error);
+    }
+  };
+
+  // Trigger update after contest ends
+  useEffect(() => {
+    if (!contest || !hasEnded) return;
+
+    // Update user contest history for each participant
+    contest.participants.forEach((participant) => {
+      const user = leaderboard.find((u) => u.handle === participant.cfHandle);
+      if (user) {
+        updateUserContestHistory(participant._id, contest.name, user.solved, contest.startDate);
+      }
+    });
+  }, [contest, hasEnded, leaderboard]);
 
   if (loading) return <p className="text-center text-lg">Loading contest details...</p>;
   if (error) return <p className="text-center text-red-500">{error}</p>;
@@ -263,14 +303,14 @@ const ContestPage = () => {
       </div>
 
       {/* Comment Button and Commentbox (Only shown after contest ends) */}
-      {!hasEnded && (
-        <div className="fixed bottom-2 right-2 shadow-lg">
-          <Button onClick={() => setShowCommentBox(!showCommentBox)}>
-            {!showCommentBox ? <MessageCircle /> : <X />}
-          </Button>
-          {showCommentBox && <Commentbox />}
-        </div>
-      )}
+      {hasEnded && (
+  <div className="fixed bottom-2 right-2 shadow-lg">
+    <Button onClick={() => setShowCommentBox(!showCommentBox)}>
+      {!showCommentBox ? <MessageCircle /> : <X />}
+    </Button>
+    {showCommentBox && <Commentbox />}
+  </div>
+)}
     </Room>
   );
 };

@@ -1,7 +1,7 @@
 "use client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Trophy, Users, Timer, Pencil } from "lucide-react";
+import { Users, Timer, Pencil, UserPlus } from "lucide-react"; // Added UserPlus icon
 import Header from "@/components/Header";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -81,13 +81,16 @@ export default function Home() {
 
       {/* Features Section */}
       <section className="container mx-auto py-12 px-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 justify-center gap-6">
-        {/* Leaderboard */}
+        {/* Friends */}
         <Card>
-          <CardContent className="flex flex-col items-center p-6">
-            <Trophy size={40} className="text-yellow-500" />
-            <h3 className="mt-4 font-bold text-lg">Leaderboard</h3>
+          <CardContent
+            className="flex flex-col hover:cursor-pointer items-center p-6"
+            onClick={() => router.push("/friends")} // Redirect to friends page
+          >
+            <UserPlus size={40} className="text-purple-500" /> {/* Updated icon */}
+            <h3 className="mt-4 font-bold text-lg">Friends</h3>
             <p className="text-center text-gray-600">
-              Track your rankings in real-time.
+              Connect and compete with friends.
             </p>
           </CardContent>
         </Card>

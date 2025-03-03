@@ -4,13 +4,34 @@ const nodemailer = require("nodemailer");
 var cors = require('cors')
 const port = 4000
 const bodyparser = require('body-parser')
-const { MongoClient } = require('mongodb');
+const { MongoClient, ObjectId } = require('mongodb');
 const app = express();
 app.use(cors())
 require('dotenv').config()
 app.use(bodyparser.json())
 console.log(process.env.EMAIL_PASS)
+app.get("/usersid/:userId", async (req, res) => {
+  try {
+    const userId = req.params.userId;
+    const usersCollection = db.collection('usersdata');
 
+    // Use ObjectId.isValid() from the native MongoDB driver
+    if (!ObjectId.isValid(userId)) {
+      return res.status(400).json({ message: "Invalid user ID" });
+    }
+
+    // Find the user by their ObjectId
+    const user = await usersCollection.findOne({ _id: new ObjectId(userId) });
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res.status(200).json(user);
+  } catch (error) {
+    console.error("Error fetching user:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+});
 const url = process.env.MONGO;
 const client = new MongoClient(url);
 const dbname = "Coding-Arena";
@@ -102,8 +123,55 @@ app.post('/privatecontests/:id/register', async (req, res) => {
         res.status(500).json({ error: "Internal Server Error" });
     }
 });
+app.post('/users/:userId/update-contest-history', async (req, res) => {
+  const { userId } = req.params;
+  const { contestName, problemsSolved } = req.body;
+  const User = db.collection('usersdata');
+console.log("hello");
+  try {
+    const user = await User.findById(userId);
+    if (!user) return res.status(404).json({ message: "User not found" });
 
+    user.contests.push({ name: contestName, problemsSolved });
+    await user.save();
 
+    res.status(200).json({ message: "Contest history updated successfully" });
+  } catch (error) {
+    res.status(500).json({ message: "Error updating contest history", error });
+  }
+});
+app.post('/users/mark-problem-solved', async (req, res) => {
+    try {
+      const { email, problemId } = req.body;
+      if (!email || !problemId) {
+          console.log(email,problemId);
+        return res.status(400).json({ error: "Email and problemId are required" });
+      }
+  
+      const usersCollection = db.collection('usersdata');
+  
+      // Find the user
+      const user = await usersCollection.findOne({ email });
+      if (!user) {
+        return res.status(404).json({ error: "User not found" });
+      }
+  
+      // Update the user's solved problems array
+      const result = await usersCollection.updateOne(
+        { email },
+        { $addToSet: { solvedProblems: problemId } } // Use $addToSet to avoid duplicates
+      );
+  
+      if (result.matchedCount === 0) {
+        return res.status(404).json({ error: "User not found" });
+      }
+  
+      res.status(200).json({ message: "Problem marked as solved!" });
+    } catch (error) {
+      console.error("Error marking problem as solved:", error);
+      res.status(500).json({ error: "Internal Server Error" });
+    }
+  });
 
 app.get('/upcomingcontests', async (req, res) => {
     try {
@@ -124,10 +192,11 @@ app.get('/upcomingcontests', async (req, res) => {
 });
 
 app.get('/users', async (req, res) => {
+  console.log(req.query.email)
     try {
         const usersCollection = db.collection('usersdata');
         const email = req.query.email;
-
+          console.log(email)
         if (!email) {
             return res.status(400).json({ error: "Email query parameter is required" });
         }
@@ -276,6 +345,139 @@ app.post("/contests/:contestid/register", async (req, res) => {
     }
 });
 
+app.get('/users/search', async (req, res) => {
+  console.log("Search API Hit!"); // Debugging log
+  const { query } = req.query;
+  console.log("Query:", query); // Log the search query
+  
+  if (!query) {
+    return res.status(400).json({ error: 'Search query is required' });
+  }
+  
+  try {
+    const usersCollection = db.collection('usersdata');
+    const users = await usersCollection.find({
+      $or: [
+        { email: { $regex: query, $options: 'i' } },
+        { name: { $regex: query, $options: 'i' } },
+      ],
+    }).toArray();
+
+    res.status(200).json(users);
+  } catch (error) {
+    console.error('Error searching users:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+
+// Add a friend
+// const { ObjectId } = require('mongodb'); // Import ObjectId from MongoDB
+
+app.post('/users/add-friend', async (req, res) => {
+const { userId, friendId } = req.body;
+console.log(req.body);
+
+if (!userId || !friendId) {
+  return res.status(400).json({ error: 'userId and friendId are required' });
+}
+
+try {
+  const usersCollection = db.collection('usersdata');
+
+  // Convert userId and friendId to ObjectId
+  const userIdObject = new ObjectId(userId);
+  const friendIdObject = new ObjectId(friendId);
+
+  // Update the user's friends list
+  const result = await usersCollection.updateOne(
+    { _id: userIdObject }, // Use ObjectId for query
+    { $addToSet: { friends: friendIdObject } } // Use ObjectId for update
+  );
+
+  if (result.matchedCount === 0) {
+    return res.status(404).json({ error: 'User not found' });
+  }
+
+  res.status(200).json({ message: 'Friend added successfully' });
+} catch (error) {
+  console.error('Error adding friend:', error);
+  res.status(500).json({ error: 'Internal Server Error' });
+}
+});
+
+// Remove a friend
+
+app.post('/users/remove-friend', async (req, res) => {
+const { userId, friendId } = req.body;
+console.log(req.body);
+
+if (!userId || !friendId) {
+  return res.status(400).json({ error: 'userId and friendId are required' });
+}
+
+try {
+  const usersCollection = db.collection('usersdata');
+
+  // Convert userId and friendId to ObjectId
+  const userIdObject = new ObjectId(userId);
+  const friendIdObject = new ObjectId(friendId);
+
+  // Remove friendId from the user's friends list
+  const result = await usersCollection.updateOne(
+    { _id: userIdObject }, // Use ObjectId for query
+    { $pull: { friends: friendIdObject } } // Use ObjectId for update
+  );
+
+  if (result.matchedCount === 0) {
+    return res.status(404).json({ error: 'User not found' });
+  }
+
+  res.status(200).json({ message: 'Friend removed successfully' });
+} catch (error) {
+  console.error('Error removing friend:', error);
+  res.status(500).json({ error: 'Internal Server Error' });
+}
+});
+
+app.get('/users/:userId/friends', async (req, res) => {
+  const { userId } = req.params;
+
+  // Validate if userId is a valid ObjectId
+  if (!ObjectId.isValid(userId)) {
+    return res.status(400).json({ error: 'Invalid user ID' });
+  }
+
+  try {
+    const usersCollection = db.collection('usersdata');
+
+    // Find the user and only return the 'friends' field
+    const user = await usersCollection.findOne(
+      { _id: new ObjectId(userId) }, // Convert userId to ObjectId
+      { projection: { friends: 1 } } // Only fetch the 'friends' field
+    );
+
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    // If the user has no friends, return an empty array
+    if (!user.friends || user.friends.length === 0) {
+      return res.status(200).json([]);
+    }
+
+    // Fetch details of the friends using their ObjectIds
+    const friends = await usersCollection.find(
+      { _id: { $in: user.friends.map(id => new ObjectId(id)) } }, // Convert each friend ID to ObjectId
+      { projection: { name: 1, email: 1, avatar: 1 } } // Only fetch necessary fields
+    ).toArray();
+
+    res.status(200).json(friends);
+  } catch (error) {
+    console.error('Error fetching friends:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
 
 
 app.post('/upcomingcontests', async (req, res) => {

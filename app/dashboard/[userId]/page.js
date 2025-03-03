@@ -1,7 +1,6 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
-import { useUser } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
 import {
   LineChart, Line, XAxis, YAxis, Tooltip,
@@ -10,8 +9,8 @@ import {
 import CalendarHeatmap from "react-calendar-heatmap";
 import "react-calendar-heatmap/dist/styles.css";
 
-const Page = () => {
-  const { user } = useUser();
+const Page = ({ params }) => {
+  const { userId } = React.use(params); // Extract userId from params
   const router = useRouter();
   const [problems, setProblems] = useState([]);
   const [data, setData] = useState(null);
@@ -23,11 +22,9 @@ const Page = () => {
 
   // Fetch user data
   const fetchdata = async () => {
-    if (!user) return;
-
     try {
       const res = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}users?email=${user.primaryEmailAddress?.emailAddress}`
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}usersid/${userId}`
       );
 
       if (!res.ok) {
@@ -130,18 +127,15 @@ const Page = () => {
   };
 
   useEffect(() => {
-    if (user) {
-      fetchdata();
-    }
-  }, [user]);
+    fetchdata();
+  }, [userId]);
 
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="min-h-screen p-3 bg-gray-100">
       {/* Navbar */}
       <header className="bg-blue-600 shadow-md py-4 px-6 flex justify-between items-center fixed w-full top-0 z-50">
         <h1 className="text-2xl font-bold text-white">Analytics</h1>
 
-        {/* Navigation Links */}
         <nav className="flex space-x-6">
           <Link href="/" className="text-white hover:text-gray-200 font-medium">
             Home
@@ -155,21 +149,21 @@ const Page = () => {
       {/* Main Content */}
       <main className="pt-20 p-6 flex flex-col items-center">
         <h2 className="text-2xl font-semibold mb-2">Problem Solving Analytics</h2>
-        <p className="text-gray-700">Your problem-solving trend over time.</p>
+        {/* <p className="text-gray-700">Problem-solving trend over time for user ID: {userId}.</p> */}
 
         {/* User Card */}
-        {user && (
+        {data && (
           <div className="bg-white shadow-lg rounded-lg p-6 mt-6 w-[350px] text-center">
             <div className="flex justify-center">
               <img
-                src={user.imageUrl}
+                src={data.avatar || "/default-avatar.png"}
                 alt="User Avatar"
                 width={100}
                 height={100}
                 className="rounded-full border-2 border-gray-300"
               />
             </div>
-            <h3 className="mt-4 text-xl font-semibold">{user.fullName || data?.name}</h3>
+            <h3 className="mt-4 text-xl font-semibold">{data.name}</h3>
 
             <div className="mt-3 text-gray-600">
               <p><strong>Contests Participated:</strong> {data?.contests?.length || 0}</p>

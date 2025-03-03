@@ -8,7 +8,7 @@ const ProblemsPage = () => {
   const [contest, setContest] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [activeTab, setActiveTab] = useState("problems"); 
+  const [activeTab, setActiveTab] = useState("problems");
   const [leaderboard, setLeaderboard] = useState([]);
 
   useEffect(() => {
@@ -34,6 +34,15 @@ const ProblemsPage = () => {
 
     const fetchLeaderboard = async () => {
       try {
+        const currentTime = new Date().getTime() / 1000; // Current time in seconds
+        const endDate = new Date(`${contest.contestDate}T${contest.endTime}:00Z`).getTime() / 1000;
+
+        // Check if the contest has ended
+        if (currentTime > endDate) {
+          console.log("Contest has ended. Leaderboard will not be updated.");
+          return;
+        }
+
         const leaderboardData = await Promise.all(
           contest.participants.map(async (participant) => {
             if (!participant.cfHandle) return { name: participant.name, handle: "N/A", solved: 0, penalty: 0 };
@@ -54,8 +63,17 @@ const ProblemsPage = () => {
     // Fetch leaderboard 5 seconds after contest data is available
     const leaderboardTimeout = setTimeout(fetchLeaderboard, 5000);
 
-    // Auto-refresh leaderboard every 1 minute
-    const interval = setInterval(fetchLeaderboard, 60000);
+    // Auto-refresh leaderboard every 1 minute (only if contest is ongoing)
+    const interval = setInterval(() => {
+      const currentTime = new Date().getTime() / 1000;
+      const endDate = new Date(`${contest.contestDate}T${contest.endTime}:00Z`).getTime() / 1000;
+
+      if (currentTime <= endDate) {
+        fetchLeaderboard();
+      } else {
+        clearInterval(interval); // Stop the interval if the contest has ended
+      }
+    }, 60000);
 
     return () => {
       clearTimeout(leaderboardTimeout);
@@ -72,7 +90,6 @@ const ProblemsPage = () => {
       console.error("Contest or contest problems are undefined.");
       return { name, handle, solved: 0, penalty: 0 };
     }
-    console.log("hello");
 
     const startDate = new Date(`${contest.contestDate}T${contest.startTime}:00Z`).getTime() / 1000;
     const endDate = new Date(`${contest.contestDate}T${contest.endTime}:00Z`).getTime() / 1000;
@@ -86,16 +103,12 @@ const ProblemsPage = () => {
         const indexFromUrl = urlParts[urlParts.length - 1];
         return contestIdFromUrl === problem.contestId && indexFromUrl === problem.index;
       });
-      // console.log(creationTimeSeconds);
-      console.log(startDate);
-      // console.log()
 
       if (
         isProblemInContest &&
         (creationTimeSeconds + 19800) >= startDate &&
         (creationTimeSeconds + 19800) <= endDate
       ) {
-        console.log(isProblemInContest)
         if (!problemStatus[problemKey]) {
           problemStatus[problemKey] = { attempts: 0, solved: false, firstSolveTime: 0 };
         }
@@ -251,10 +264,10 @@ const ProblemsPage = () => {
                     {leaderboard.map((user, index) => (
                       <tr key={index} className="border-b border-gray-200 hover:bg-gray-50 transition-colors duration-200">
                         <td className="p-3">{index + 1}</td>
-                        <td className="p-3">{user.name}</td>
-                        <td className="p-3">{user.handle}</td>
+                        <td className="p-3">{user?.name}</td>
+                        <td className="p-3">{user?.handle}</td>
                         <td className="p-3">{user.solved}</td>
-                        <td className="p-3">{user.penalty} min</td>
+                        <td className="p-3">{user?.penalty} min</td>
                       </tr>
                     ))}
                   </tbody>

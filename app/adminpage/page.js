@@ -1,4 +1,5 @@
 "use client";
+import { Loader2 } from "lucide-react";
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { v4 as uuidv4 } from "uuid";
 
@@ -19,10 +20,11 @@ const AdminPanel = () => {
   const [problems, setProblems] = useState([]);
   const [selectedProblems, setSelectedProblems] = useState(new Set());
   const [selectedTag, setSelectedTag] = useState("");
-
+   const[loading,setLoading]=useState(false);
   useEffect(() => {
     const fetchProblems = async () => {
       try {
+
         const response = await fetch("https://codeforces.com/api/problemset.problems");
         const data = await response.json();
         if (data.status === "OK") {
@@ -70,6 +72,7 @@ const AdminPanel = () => {
   }), [contest, problems, selectedProblems]);
 
   const handleSubmit = async (e) => {
+    setLoading(true);
     e.preventDefault();
     try {
       const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}upcomingcontests`, {
@@ -88,6 +91,7 @@ const AdminPanel = () => {
     } catch (error) {
       console.error("Error sending data:", error);
     }
+    setLoading(false);
   };
 
   return (
@@ -135,7 +139,7 @@ const AdminPanel = () => {
           </div>
         </div>
 
-        <button type="submit" className="w-full p-2 bg-blue-500 hover:bg-blue-600 text-white font-bold rounded-lg">🚀 Add Contest</button>
+        <button type="submit" className="w-full p-2 bg-blue-500 hover:bg-blue-600 text-white font-bold rounded-lg">{loading?<Loader2 className="animate-spin" />:"🚀 Add Contest"}</button>
       </form>
     </div>
   );

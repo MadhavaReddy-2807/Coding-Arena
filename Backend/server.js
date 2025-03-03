@@ -508,7 +508,7 @@ app.post('/upcomingcontests', async (req, res) => {
         const mailOptions = {
             from: contest.authoremail,
             subject: `🚀 New Contest Alert: ${contest.name}!`,
-            text: `Hey there,\n\nA new contest has been added!\n\n📌 ${contest.name}\n📅 Start: ${contest.startDate} at ${contest.startTime}\n🏆 Organized by: ${contest.author}\n\n🔗 Register now: https://your-website.com${contest.link}\n\nBest of luck!\n\n- ${contest.author}`,
+            text: `Hey there,\n\nA new contest has been added!\n\n📌 ${contest.name}\n📅 Start: ${contest.startDate} at ${contest.startTime}\n🏆 Organized by: ${contest.author}\n\n🔗 Register now: ${process.env.FRONTEND_URL}\n\nBest of luck!\n\n- ${contest.author}`,
         };
 
         for (const user of users) {

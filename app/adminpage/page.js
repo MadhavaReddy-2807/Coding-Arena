@@ -7,7 +7,7 @@ const AdminPanel = () => {
   const [contest, setContest] = useState({
     name: "",
     author: "",
-    authoremail: "",
+    authoremail: "madhava2807@gmail.com",
     aim: "",
     startDate: "",
     startTime: "",
@@ -83,7 +83,7 @@ const AdminPanel = () => {
 
       if (res.ok) {
         alert("Contest added successfully!");
-        setContest({ name: "", author: "", authoremail: "", aim: "", startDate: "", startTime: "", endTime: "", problems: [], participants: [], id: uuidv4() });
+        setContest({ name: "", author: "", authoremail: "madhava2807@gmail.com", aim: "", startDate: "", startTime: "", endTime: "", problems: [], participants: [], id: uuidv4() });
         setSelectedProblems(new Set());
       } else {
         console.error("Failed to send contest data");
@@ -101,7 +101,15 @@ const AdminPanel = () => {
       <form onSubmit={handleSubmit} className="w-full max-w-lg bg-gray-800 p-6 rounded-lg shadow-lg space-y-4">
         <input type="text" name="name" value={contest.name} onChange={handleChange} placeholder="Contest Name" required className="w-full p-2 rounded bg-gray-700 text-white"/>
         <input type="text" name="author" value={contest.author} onChange={handleChange} placeholder="Author Name" required className="w-full p-2 rounded bg-gray-700 text-white"/>
-        <input type="email" name="authoremail" value={contest.authoremail} onChange={handleChange} placeholder="Author Email" required className="w-full p-2 rounded bg-gray-700 text-white"/>
+        <input 
+    type="email" 
+    name="authoremail" 
+    value={contest.authoremail}  
+    placeholder="Author Email" 
+    required 
+    readOnly 
+    className="w-full p-2 rounded bg-gray-700 text-white"
+/>
         <input type="text" name="aim" value={contest.aim} onChange={handleChange} placeholder="Contest Aim" required className="w-full p-2 rounded bg-gray-700 text-white"/>
         <input type="date" name="startDate" value={contest.startDate} onChange={handleChange} required className="w-full p-2 rounded bg-gray-700 text-white"/>
         <input type="time" name="startTime" value={contest.startTime} onChange={handleChange} required className="w-full p-2 rounded bg-gray-700 text-white"/>

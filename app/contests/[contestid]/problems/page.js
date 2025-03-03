@@ -33,7 +33,7 @@ const ContestPage = () => {
         const currentTime = new Date().getTime();
         console.log(currentTime);
         console.log(contestEndTime);
-        setHasEnded(currentTime+1000000000 >= contestEndTime); // Update hasEnded state
+        setHasEnded(currentTime+10000000 >= contestEndTime); // Update hasEnded state
       } catch (error) {
         console.error("Error fetching contest:", error);
         setError(error.message);
@@ -108,8 +108,8 @@ const ContestPage = () => {
   
       if (
         isProblemInContest &&
-        creationTimeSeconds >= startDate &&
-        creationTimeSeconds <= endDate
+        creationTimeSeconds+19800>= startDate &&
+        creationTimeSeconds+19800<= endDate
       ) {
         if (!problemStatus[problemKey]) {
           problemStatus[problemKey] = { attempts: 0, solved: false, firstSolveTime: 0 };
@@ -125,6 +125,7 @@ const ContestPage = () => {
         } else {
           problemStatus[problemKey].attempts++;
           penalty += 20;
+          console.log(penalty)
         }
       }
     });

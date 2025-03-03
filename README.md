@@ -1,36 +1,149 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# **Competitive Programming Arena**
 
-## Getting Started
+A platform where users can create and participate in custom contests, track performance, and engage in problem-solving with **Codeforces integration**.
 
-First, run the development server:
+---
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## **Features Implemented**
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+- ✅ **User Authentication** – Secure login using Clerk.
+- ✅ **Custom Contest Creation** – Users can create private contests and share them with participants.
+- ✅ **Automated Scoring & Penalty (ICPC Style)** – Tracks scores with penalties.
+- ✅ **Friend System** – Users can add friends and view their progress.
+- ✅ **Browse Problems by Tags** – Find problems by difficulty and topic.
+- ✅ **Email Confirmation for Global Contests** – Participants receive a confirmation email.
+- ✅ **Virtual Rating Graph** – Fetches Codeforces rating graph.
+- ✅ **Heatmap from Codeforces** – Displays daily problem-solving streaks.
+- ✅ **Problem Solving Analytics** – Graph showing problems solved in each contest.
+- ✅ **Admin Controls** – Admins can create contests and notify all users via email.
+- ✅ **Live Chat (Post-Contest)** – Users can discuss solutions after contests.
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+---
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## **Tech Stack Used**
 
-## Learn More
+- **Frontend:** Next.js, ShadCN
+- **Backend:** Node.js, Express.js
+- **Database:** MongoDB
+- **Authentication:** Clerk
+- **Real-time Collaboration:** LiveBlocks
+- **Email Notifications:** Nodemailer
 
-To learn more about Next.js, take a look at the following resources:
+---
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## **Screenshots of Features**
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### **1. Login Page**
 
-## Deploy on Vercel
+![Login Page](assets/image.png)
+*Users can sign in through Google (Clerk Implementation)*
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### **2. Home Page**
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+![Home Page](assets/image-2.png)
+*After logging in, the user is redirected to the home page.*
+
+### **3. Dashboard**
+
+![Dashboard](assets/image-3.png)
+*Users can update their Codeforces handle and save it. Below, past registered contests are displayed.*
+
+### **4. Analytics Page**
+
+- Number of problems solved in each contest.
+- Rating Change from the Codeforces API.
+- Daily Problem Streak from Codeforces API.
+
+![Analytics Graph 1](assets/image-5.png)
+![Analytics Graph 2](assets/image-6.png)
+
+### **5. Admin Panel**
+
+![Admin Panel](assets/image-7.png)
+*Admins can start global contests, notify users via email, and select problems based on tags from Codeforces.*
+
+### **6. Contest Notification Email**
+
+![Admin Email](assets/WhatsApp%20Image%202025-03-03%20at%2017.24.46_d4253ba0.jpg)
+
+### **7. Contest Registration & Confirmation**
+
+![Upcoming Contests](assets/image-8.png)
+*Users can view upcoming and live contests.*
+
+![Contest Registration](assets/image-9.png)
+*Users can register before the contest starts.*
+
+![Confirmation Email](assets/WhatsApp%20Image%202025-03-03%20at%2017.28.38_3235b58c.jpg)
+*After registration, users receive a confirmation email.*
+
+### **8. Contest Interface**
+
+![Contest Options](assets/image-12.png)
+*Three main options: Problems, Participants, and Leaderboard.*
+
+![Leaderboard](assets/image-13.png)
+*Leaderboard updates automatically based on Codeforces verdicts.*
+
+### **9. Live Contest & Post-Contest Discussion**
+
+![Live Contest](assets/image-14.png)
+*A "Live Now" indicator appears during active contests.*
+
+![Past Contests](assets/image-15.png)
+*After completion, contests are added to past contests.*
+
+![Live Chat](assets/image-16.png)
+*Users can engage in live chat post-contest via LiveBlocks.*
+![Live Chat](assets/image-17.png)
+
+### **10. Friends & Social Features**
+
+![Friends Page](assets/image-18.png)
+*Users can search for friends, add, or remove them.*
+![Friends Page](assets/image-19.png)
+
+![Friend Profile](assets/image-20.png)
+*Clicking on a friend's profile redirects to their dashboard.*
+
+### **11. Problem Set & Custom Contests**
+
+![Problem Set](assets/image-21.png)
+![Problem Set](assets/image-22.png)
+*Users can browse problems by tags.*
+
+![Custom Contests](assets/image-23.png)
+![Custom Contests](assets/image-24.png)
+*Users can create custom contests and share them with friends.*
+![Custom Contests](assets/image-25.png)
+
+![Start Contest](assets/image-26.png)
+*Once started, the contest interface is the same as global contests.*
+
+---
+
+### **How to Run the Project Locally**
+
+1. Clone the repository:
+   ```sh
+   git clone https://github.com/MadhavaReddy-2807/Coding-Arena
+   ```
+
+2. Install dependencies:
+   ```sh
+   npm install
+   ```
+
+3. Run the development server:
+   ```sh
+   npm run dev
+   ```
+
+4. Open [http://localhost:3000](http://localhost:3000) in your browser.
+
+---
+
+### **Created with Love -Madhava Reddy**
+
+Let me know if you need any additional improvements! 🚀
+

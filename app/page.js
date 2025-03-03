@@ -140,7 +140,7 @@ export default function Home() {
 
       {/* Footer */}
       <footer className="bg-gray-800 fixed bottom-1 w-full text-white text-center py-1 mt-12">
-        <p>&copy; 2025 Competitive Programming Arena. All rights reserved.</p>
+      <p>Created with ❤️ by <strong>-Madhava Reddy</strong></p>
       </footer>
     </div>
   );

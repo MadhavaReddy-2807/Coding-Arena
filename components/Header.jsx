@@ -37,15 +37,15 @@ export default function Header() {
         {/* Left Side: Hamburger + Logo */}
         <div className="flex items-center space-x-4">
           {/* Hamburger Button */}
-          <button
+          {/* <button
             onClick={() => setIsOpen(true)}
             className="text-white focus:outline-none"
           >
             <Menu size={28} />
-          </button>
+          </button> */}
 
           {/* Logo */}
-          <h1 className="text-2xl font-bold text-white">CP Arena</h1>
+          <h1 className="text-2xl font-bold text-white hidden md:block">CP Arena</h1>
         </div>
 
         {/* Right Side: Dashboard */}

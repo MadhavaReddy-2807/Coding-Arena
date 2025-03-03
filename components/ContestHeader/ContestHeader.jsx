@@ -50,15 +50,15 @@ export default function ContestHeader() {
       <header className="bg-blue-600 shadow-sm shadow-blue-300 py-4 px-6 flex justify-between items-center fixed w-full top-0 z-50">
         <div className="flex items-center space-x-4">
           {/* Hamburger Button */}
-          <button
+          {/* <button
             onClick={() => setIsOpen(true)}
             className="text-white focus:outline-none"
           >
             <Menu size={28} />
-          </button>
+          </button> */}
 
           {/* Logo */}
-          <h1 className="text-2xl font-bold text-white">CP Arena</h1>
+          <h1 className="text-2xl font-bold hidden md:block text-white">CP Arena</h1>
         </div>
         
         <div className="flex items-center space-x-6">

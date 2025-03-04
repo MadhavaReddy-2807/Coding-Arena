@@ -333,7 +333,7 @@ app.post("/contests/:contestid/register", async (req, res) => {
             from: organizerEmail,
             to: email,
             subject: `Registration Confirmation - ${contest.name}`,
-            text: `Hi ${name},\n\nYou've successfully registered for ${contest.name}!\n\n📅 Start Time: ${contest.startTime}\n🕒 End Time: ${contest.endTime}\n\n🔗 View Contest: ${process.env.FRONTEND_URL}/contests/${contestid}\n\nBest of luck!\n\nOrganizer: ${contest.organizer}`,
+            text: `Hi ${name},\n\nYou've successfully registered for ${contest.name}!\n\n📅 Start Time: ${contest.startTime}\n🕒 End Time: ${contest.endTime}\n\n🔗 View Contest: ${process.env.FRONTEND_URL}contests/${contestid}\n\nBest of luck!\n\nOrganizer: ${contest.organizer}`,
         };
 
         await transporter.sendMail(mailOptions);
@@ -508,7 +508,7 @@ app.post('/upcomingcontests', async (req, res) => {
         const mailOptions = {
             from: contest.authoremail,
             subject: `🚀 New Contest Alert: ${contest.name}!`,
-            text: `Hey there,\n\nA new contest has been added!\n\n📌 ${contest.name}\n📅 Start: ${contest.startDate} at ${contest.startTime}\n🏆 Organized by: ${contest.author}\n\n🔗 Register now: ${process.env.FRONTEND_URL}/contests\n\nBest of luck!\n\n- ${contest.author}`,
+            text: `Hey there,\n\nA new contest has been added!\n\n📌 ${contest.name}\n📅 Start: ${contest.startDate} at ${contest.startTime}\n🏆 Organized by: ${contest.author}\n\n🔗 Register now: ${process.env.FRONTEND_URL}contests\n\nBest of luck!\n\n- ${contest.author}`,
         };
 
         for (const user of users) {

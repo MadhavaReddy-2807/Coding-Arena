@@ -29,11 +29,11 @@ const ContestPage = () => {
         setContest(data);
   
         // Calculate if the contest has ended
-        const contestEndTime = new Date(`${data.startDate}T${data.endTime}:00Z`).getTime();
+        const contestEndTime = new Date(`${data.startDate}T${data.endTime}:00+05:30`).getTime();
         const currentTime = new Date().getTime();
         console.log(currentTime);
         console.log(contestEndTime);
-        setHasEnded(currentTime+10000000 >= contestEndTime); // Update hasEnded state
+        setHasEnded(currentTime>= contestEndTime); // Update hasEnded state
       } catch (error) {
         console.error("Error fetching contest:", error);
         setError(error.message);
@@ -181,9 +181,9 @@ const ContestPage = () => {
           </p>
 
           {/* Tabs */}
-          <div className="flex justify-center mt-6 space-x-4">
+          <div className=" flex-col gap-3 flex  md:flex-row  justify-center mt-6 space-x-4">
             <button
-              className={`px-6 py-2 font-semibold rounded-md transition-all duration-300 ${
+              className={`px-5 py-2 font-semibold rounded-md transition-all duration-300 ${
                 activeTab === "problems"
                   ? "bg-blue-600 text-white shadow-lg"
                   : "bg-gray-200 text-gray-700 hover:bg-gray-300"

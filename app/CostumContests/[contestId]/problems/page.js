@@ -144,7 +144,7 @@ const ProblemsPage = () => {
           </p>
 
           {/* Tabs */}
-          <div className="flex justify-center mt-6 space-x-4">
+          <div className="flex-col gap-3 flex  md:flex-row justify-center mt-6 space-x-4">
             <button
               className={`px-6 py-2 font-semibold rounded-md transition-all duration-300 ${
                 activeTab === "problems"

@@ -305,7 +305,7 @@ const ContestPage = () => {
 
       {/* Comment Button and Commentbox (Only shown after contest ends) */}
       {hasEnded && (
-  <div className="fixed bottom-2 right-2 shadow-lg">
+  <div className="fixed bottom-2 right-2 p-3 shadow-lg">
     <Button onClick={() => setShowCommentBox(!showCommentBox)}>
       {!showCommentBox ? <MessageCircle /> : <X />}
     </Button>

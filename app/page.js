@@ -61,17 +61,13 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-gray-100 text-gray-900">
-      {/* Header Component */}
       <Header />
-
-      {/* Hero Section */}
       <header className="bg-blue-600 mt-10 text-white py-16 text-center">
         <h1 className="text-4xl font-bold">Competitive Programming Arena</h1>
         <p className="mt-4 text-lg">
           Create contests, challenge friends, and track performance.
         </p>
 
-        {/* Join Contest Button */}
         <Link href="/contests">
           <Button className="mt-6 bg-white text-blue-600 px-6 py-3 rounded-xl font-semibold hover:bg-gray-200">
             Join a Contest
@@ -79,7 +75,6 @@ export default function Home() {
         </Link>
       </header>
 
-      {/* Features Section */}
       <section className="container mx-auto py-12 px-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 justify-center gap-6">
         {/* Friends */}
         <Card>
@@ -94,8 +89,6 @@ export default function Home() {
             </p>
           </CardContent>
         </Card>
-
-        {/* Problem Set */}
         <Card>
           <CardContent
             className="flex flex-col hover:cursor-pointer items-center p-6"
@@ -123,7 +116,6 @@ export default function Home() {
           </CardContent>
         </Card>
 
-        {/* Custom Contests */}
         <Card>
           <CardContent
             className="hover:cursor-pointer flex flex-col items-center p-6"
@@ -140,7 +132,7 @@ export default function Home() {
 
       {/* Footer */}
       <footer className="bg-gray-800 fixed bottom-1 w-full text-white text-center py-1 mt-12">
-      <p>Created with ❤️ by <strong>-Madhava Reddy</strong></p>
+<p>Check  <strong><a href="https://github.com/MadhavaReddy-2807/Coding-Arena" target="_blank" rel="noopener noreferrer">GitHub</a></strong> to know about CP Arena  </p>
       </footer>
     </div>
   );

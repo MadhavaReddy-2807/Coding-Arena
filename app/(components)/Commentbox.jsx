@@ -4,12 +4,12 @@ import { Composer, Thread } from "@liveblocks/react-ui";
 import { useThreads } from "@liveblocks/react";
 
 const Commentbox = () => {
-  const { threads = [] } = useThreads(); // Prevent undefined error
+  const { threads: fetchedThreads = [] } = useThreads(); // Get threads directly
 
   return (
     <div className="w-[300px] h-[350px] shadow-lg rounded-lg overflow-auto p-2 bg-white">
-      {threads.length > 0 ? (
-        threads.map((thread) => <Thread key={thread.id} thread={thread} />)
+      {fetchedThreads.length > 0 ? (
+        fetchedThreads.map((thread) => <Thread key={thread.id} thread={thread} />)
       ) : (
         <p className="text-center text-gray-500">No comments yet.</p>
       )}

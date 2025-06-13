@@ -4,39 +4,39 @@ import { Card, CardContent } from "@/components/ui/card";
 import { UserPlus, Users, Search } from "lucide-react";
 import Header from "@/components/Header";
 import Link from "next/link";
-import { useState, useEffect } from "react"; // Import useEffect
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useUser } from "@clerk/nextjs"; // Import Clerk's useUser hook
+import { useUser } from "@clerk/nextjs";
 
 export default function FriendsPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState([]);
-  const [friends, setFriends] = useState([]); // List of friends
-  const [currentUser, setCurrentUser] = useState(null); // Current user's data from backend
+  const [friends, setFriends] = useState([]);
+  const [currentUser, setCurrentUser] = useState(null);
+  const [isSearching, setIsSearching] = useState(false);
+  const [notFound, setNotFound] = useState(false);
   const router = useRouter();
-  const { user } = useUser(); // Get the current user from Clerk
+  const { user } = useUser();
 
-  // Fetch the current user's data from the backend
   const fetchCurrentUser = async () => {
-    if (!user) return; // Ensure the user is authenticated
-
+    if (!user) return;
     try {
       const res = await fetch(
         `${process.env.NEXT_PUBLIC_BACKEND_URL}users?email=${user.primaryEmailAddress.emailAddress}`
       );
-      console.log(res);
       if (!res.ok) throw new Error("Failed to fetch current user");
-
       const data = await res.json();
-      setCurrentUser(data); // Set the current user's data
+      setCurrentUser(data);
     } catch (error) {
       console.error("Error fetching current user:", error);
     }
   };
 
-  // Fetch users based on search query
   const handleSearch = async () => {
     if (!searchQuery) return;
+    setIsSearching(true);
+    setNotFound(false);
+    setSearchResults([]);
 
     try {
       const res = await fetch(
@@ -46,73 +46,69 @@ export default function FriendsPage() {
 
       const data = await res.json();
       setSearchResults(data);
+      if (data.length === 0) setNotFound(true);
     } catch (error) {
       console.error("Error searching users:", error);
+      setNotFound(true);
+    } finally {
+      setIsSearching(false);
     }
   };
 
-  // Add a friend
   const addFriend = async (friendId) => {
-    if (!currentUser) return; // Ensure the current user's data is available
+    if (!currentUser) return;
 
     try {
       const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}users/add-friend`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          userId: currentUser._id, // Use the current user's ID from backend
+          userId: currentUser._id,
           friendId: friendId,
         }),
       });
 
       if (!res.ok) throw new Error("Failed to add friend");
 
-      // Update the friends list
       const newFriend = searchResults.find((user) => user._id === friendId);
       setFriends([...friends, newFriend]);
-      setSearchResults([]); // Clear search results
+      setSearchResults([]);
     } catch (error) {
       console.error("Error adding friend:", error);
     }
   };
 
-  // Remove a friend
   const removeFriend = async (friendId) => {
-    if (!currentUser) return; // Ensure the current user's data is available
+    if (!currentUser) return;
 
     try {
       const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}users/remove-friend`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          userId: currentUser._id, // Use the current user's ID from backend
+          userId: currentUser._id,
           friendId: friendId,
         }),
       });
 
       if (!res.ok) throw new Error("Failed to remove friend");
 
-      // Update the friends list
       setFriends(friends.filter((friend) => friend._id !== friendId));
     } catch (error) {
       console.error("Error removing friend:", error);
     }
   };
 
-  // Redirect to user dashboard
   const redirectToUserDashboard = (userId) => {
     router.push(`/dashboard/${userId}`);
   };
 
-  // Fetch the current user's friends list
   const fetchFriends = async () => {
-    if (!currentUser) return; // Ensure the current user's data is available
-     console.log("current",currentUser)
+    if (!currentUser) return;
     try {
       const res = await fetch(
         `${process.env.NEXT_PUBLIC_BACKEND_URL}users/${currentUser._id}/friends`
       );
-      console.log(res);
       if (!res.ok) throw new Error("Failed to fetch friends");
 
       const data = await res.json();
@@ -122,14 +118,12 @@ export default function FriendsPage() {
     }
   };
 
-  // Fetch the current user's data and friends list when the component mounts
   useEffect(() => {
     if (user) {
       fetchCurrentUser();
     }
   }, [user]);
 
-  // Fetch friends when the current user's data is available
   useEffect(() => {
     if (currentUser) {
       fetchFriends();
@@ -138,10 +132,8 @@ export default function FriendsPage() {
 
   return (
     <div className="min-h-screen mt-10 bg-gray-100 text-gray-900">
-      {/* Header Component */}
       <Header />
 
-      {/* Main Content */}
       <main className="container mx-auto py-12 px-4">
         <h1 className="text-3xl font-bold mb-8">Friends</h1>
 
@@ -163,13 +155,21 @@ export default function FriendsPage() {
               <Button
                 className="bg-purple-500 text-white hover:bg-purple-600"
                 onClick={handleSearch}
+                disabled={isSearching}
               >
-                <Search size={16} className="mr-2" />
-                Search
+                {isSearching ? "Searching..." : (
+                  <>
+                    <Search size={16} className="mr-2" />
+                    Search
+                  </>
+                )}
               </Button>
             </div>
 
-            {/* Search Results */}
+            {notFound && (
+              <p className="mt-4 text-red-500 font-medium">No users found.</p>
+            )}
+
             {searchResults.length > 0 && (
               <div className="mt-4 space-y-2">
                 {searchResults.map((user) => (
@@ -186,16 +186,30 @@ export default function FriendsPage() {
                       />
                       <p className="font-medium">{user.name}</p>
                     </div>
-                    <Button
-                      variant="outline"
-                      className="text-purple-500 border-purple-500"
-                      onClick={(e) => {
-                        e.stopPropagation(); // Prevent redirect
-                        addFriend(user._id);
-                      }}
-                    >
-                      Add Friend
-                    </Button>
+
+                    {friends.some(friend => friend._id === user._id) ? (
+                      <Button
+                        variant="outline"
+                        className="text-red-500 border-red-500"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          removeFriend(user._id);
+                        }}
+                      >
+                        Remove
+                      </Button>
+                    ) : (
+                      <Button
+                        variant="outline"
+                        className="text-purple-500 border-purple-500"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          addFriend(user._id);
+                        }}
+                      >
+                        Add Friend
+                      </Button>
+                    )}
                   </div>
                 ))}
               </div>
@@ -230,7 +244,7 @@ export default function FriendsPage() {
                       variant="outline"
                       className="text-red-500 border-red-500"
                       onClick={(e) => {
-                        e.stopPropagation(); // Prevent redirect
+                        e.stopPropagation();
                         removeFriend(friend._id);
                       }}
                     >
